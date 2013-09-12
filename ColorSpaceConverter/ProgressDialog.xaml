@@ -1,0 +1,22 @@
+﻿<Window x:Class="ColorSpaceConverter.ProgressDialog"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Processing..." Height="auto" Width="auto" MinWidth="300" SizeToContent="WidthAndHeight" WindowStartupLocation="CenterOwner" ResizeMode="NoResize" WindowStyle="None" AllowsTransparency="True">
+    <Grid>
+        <Grid.Background>
+            <LinearGradientBrush>
+                <GradientStop Offset="0.00" Color="CornflowerBlue" />
+                <GradientStop Offset="0.50" Color="Gray"/>
+                <GradientStop Offset="1.00" Color="White" />
+            </LinearGradientBrush>
+        </Grid.Background>
+        
+        <StackPanel>
+            <TextBlock HorizontalAlignment="Center" Margin="5">Converting images, please wait...</TextBlock>
+            <TextBlock x:Name="lblProgress" HorizontalAlignment="Center" Margin="5">0%</TextBlock>
+            <ProgressBar x:Name="progress" MinHeight="25" IsIndeterminate="False" Margin="5" Foreground="#FF2C93DD"/>
+            <Button Margin="5" x:Name="btnCancel" MinWidth="25" Style="{DynamicResource RoundedButton}" Background="#FF7F90FC" BorderBrush="#95FFFFFF" Content="CANCEL" Click="btnCancel_Click"/>
+        </StackPanel>
+        
+    </Grid>
+</Window>
