@@ -33,35 +33,49 @@ namespace ColorSpaceConverter
         #region aux methods
         private void PrepareColorProfileList()
         {
-            cmbProfiles.Items.Clear();
-            string path = Assembly.GetExecutingAssembly().Location;
-            var directory = System.IO.Path.Combine(System.IO.Path.GetDirectoryName(path), "Color Profiles");
-
-            DirectoryInfo di = new DirectoryInfo(directory);
-
-            FileInfo[] allFiles = di.GetFiles("*.icc");
-
-            foreach (FileInfo file in allFiles)
+            try
             {
-                cmbProfiles.Items.Add(System.IO.Path.GetFileNameWithoutExtension(file.FullName));
+                cmbProfiles.Items.Clear();
+                string path = Assembly.GetExecutingAssembly().Location;
+                var directory = System.IO.Path.Combine(System.IO.Path.GetDirectoryName(path), "Color Profiles");
+
+                DirectoryInfo di = new DirectoryInfo(directory);
+
+                FileInfo[] allFiles = di.GetFiles("*.icc");
+
+                foreach (FileInfo file in allFiles)
+                {
+                    cmbProfiles.Items.Add(System.IO.Path.GetFileNameWithoutExtension(file.FullName));
+                }
+
+                if (cmbProfiles.Items.Count > 0)
+                {
+                    cmbProfiles.SelectedIndex = 0;
+                }
             }
-
-            if (cmbProfiles.Items.Count>0)
+            catch (Exception ex)
             {
-                cmbProfiles.SelectedIndex = 0;
+                MessageBox.Show("Failed to open color profiles directory:\n" + ex.Message);
             }
         }
 
         private void FillImageListView()
         {
-            lsbAllImages.Items.Clear();
-            lsbSelectedImages.Items.Clear();
-
-            DirectoryInfo di = new DirectoryInfo(lblFolderName.Text);
-
-            foreach (FileInfo item in GetFilesByExtensions(di, allowedImageExtensions))
+            try
             {
-                lsbAllImages.Items.Add(item);
+                lsbAllImages.Items.Clear();
+                lsbSelectedImages.Items.Clear();
+
+                DirectoryInfo di = new DirectoryInfo(lblFolderName.Text);
+
+                foreach (FileInfo item in GetFilesByExtensions(di, allowedImageExtensions))
+                {
+                    lsbAllImages.Items.Add(item);
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Failed to open source directory:\n" + ex.Message);
             }
         }
 
@@ -123,7 +137,6 @@ namespace ColorSpaceConverter
         private void Window_Loaded(object sender, RoutedEventArgs e)
         {
             lblFolderName.Text = lblDestination.Text = Environment.GetFolderPath(Environment.SpecialFolder.MyPictures);
-            //lblFolderName.Content = @"C:\Users\Can\Pictures\wallpapers";
             PrepareColorProfileList();
             FillImageListView();
 
@@ -260,18 +273,25 @@ namespace ColorSpaceConverter
         {
             if (lsbAllImages.SelectedItems.Count>0)
             {
-                previewer previewForm = new previewer();
-                string sourcePath = ((FileInfo)(lsbAllImages.SelectedItems[lsbAllImages.SelectedItems.Count - 1])).FullName;
-                previewForm.SourcePath =sourcePath;
+                try
+                {
+                    previewer previewForm = new previewer();
+                    string sourcePath = ((FileInfo)(lsbAllImages.SelectedItems[lsbAllImages.SelectedItems.Count - 1])).FullName;
+                    previewForm.SourcePath = sourcePath;
 
-                ColorContext destColorContext = GetSelectedColorProfile();
-                ColorConvertedBitmap ccbPreview = ConvertSingleImage(sourcePath, destColorContext);
-                previewForm.destinationImage = ccbPreview;
+                    ColorContext destColorContext = GetSelectedColorProfile();
+                    ColorConvertedBitmap ccbPreview = ConvertSingleImage(sourcePath, destColorContext);
+                    previewForm.destinationImage = ccbPreview;
 
-                string titleText = "Preview - File: " + ((FileInfo)(lsbAllImages.SelectedItems[lsbAllImages.SelectedItems.Count - 1])).Name + " Profile: " + cmbProfiles.SelectedItem.ToString();
-                previewForm.TitleText = titleText;
+                    string titleText = "Preview - File: " + ((FileInfo)(lsbAllImages.SelectedItems[lsbAllImages.SelectedItems.Count - 1])).Name + " Profile: " + cmbProfiles.SelectedItem.ToString();
+                    previewForm.TitleText = titleText;
 
-                previewForm.ShowDialog(); 
+                    previewForm.ShowDialog();
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show("Failed to open preview:\n" + ex.Message);
+                }
             }
         }
 
@@ -298,21 +318,28 @@ namespace ColorSpaceConverter
 
         private void btnAddProfile_Click(object sender, RoutedEventArgs e)
         {
-            OpenFileDialog ofd = new OpenFileDialog();
-            ofd.Title = "Select color profile file";
-            ofd.Filter = "ICC Profile|*.icc|ICM Profile|*.icm";
-            Nullable<bool> result = ofd.ShowDialog();
-
-
-            if (result == true)
+            try
             {
-                string sourceFilePath = ofd.FileName;
-                string destFolderPath= System.IO.Path.Combine(System.IO.Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "Color Profiles");
-                string destFilePath = System.IO.Path.Combine(destFolderPath, System.IO.Path.GetFileName(sourceFilePath));
+                OpenFileDialog ofd = new OpenFileDialog();
+                ofd.Title = "Select color profile file";
+                ofd.Filter = "ICC Profile|*.icc|ICM Profile|*.icm";
+                Nullable<bool> result = ofd.ShowDialog();
 
-                File.Copy(sourceFilePath, destFilePath, true);
 
-                PrepareColorProfileList();
+                if (result == true)
+                {
+                    string sourceFilePath = ofd.FileName;
+                    string destFolderPath = System.IO.Path.Combine(System.IO.Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "Color Profiles");
+                    string destFilePath = System.IO.Path.Combine(destFolderPath, System.IO.Path.GetFileName(sourceFilePath));
+
+                    File.Copy(sourceFilePath, destFilePath, true);
+
+                    PrepareColorProfileList();
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Failed to copy profile file:\n" + ex.Message);
             }
         }
 
